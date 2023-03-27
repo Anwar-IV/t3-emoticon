@@ -1,0 +1,58 @@
+import clerkClient, { type User } from "@clerk/clerk-sdk-node";
+import { TRPCError } from "@trpc/server";
+import { z } from "zod";
+
+import { createTRPCRouter, publicProcedure } from "../trpc";
+
+const filterUserForClient = (user: User) => {
+  return {
+    id: user.id,
+    username: user.username,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    profileImageUrl: user.profileImageUrl,
+  };
+};
+
+export const postsRouter = createTRPCRouter({
+  getAll: publicProcedure.query(async ({ ctx }) => {
+    const posts = await ctx.prisma.post.findMany({
+      take: 100,
+    });
+
+    const users = (
+      await clerkClient.users.getUserList({
+        userId: posts.map((post) => post.authorId),
+      })
+    ).map((user) => filterUserForClient(user));
+    console.log("users -->", users);
+
+    return posts.map((post) => {
+      const author = users.find((user) => user.id === post.authorId);
+      if (author && author.firstName && author.lastName) {
+        return {
+          post,
+          author: {
+            ...author,
+            firstName: author.firstName,
+            lastName: author.lastName,
+          },
+        };
+      }
+      if (!author)
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Author not found!!!",
+        });
+      if (!author.firstName || !author.lastName)
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "No firstName or lastName field found on Author!",
+        });
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Unexpected Error",
+      });
+    });
+  }),
+});
