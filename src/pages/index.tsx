@@ -5,16 +5,39 @@ import Image from "next/image";
 
 import { api, RouterOutputs } from "~/utils/api";
 
+import toast from "react-hot-toast";
+
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { LoadingPage } from "~/components/loading";
+import { useState } from "react";
+import { TRPCClientError } from "@trpc/client";
+import { TRPCError } from "@trpc/server";
+let toastErrorId: string;
 
 dayjs.extend(relativeTime);
 
 const CreatePostWizard = () => {
   const { user } = useUser();
-
+  const [input, setInput] = useState<string>("");
   if (!user) return null;
+  const { mutate } = api.posts.create.useMutation({
+    onSuccess: (data) => {
+      toast.success("Emoji sent successfully", { id: toastErrorId });
+      setInput("");
+    },
+    onError: (error) => {
+      const errorArray = error.data?.zodError?.fieldErrors.content;
+      errorArray &&
+        errorArray.forEach((error, index) => {
+          if (errorArray.length - 1 === index)
+            return toast.error(error, {
+              id: toastErrorId,
+            });
+          return toast.error(error);
+        });
+    },
+  });
 
   return (
     <div className="flex gap-3 ">
@@ -29,7 +52,19 @@ const CreatePostWizard = () => {
         type="text"
         placeholder="Type some emojis!"
         className="grow bg-transparent px-3 text-lg font-semibold text-sky-200 outline-none"
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
       />
+      <button
+        type="button"
+        onClick={() => {
+          toastErrorId = toast.loading("Sending Post...", { id: toastErrorId });
+          mutate({ content: input });
+        }}
+        className="transition-scale rounded-lg border border-violet-800 bg-transparent p-2 text-gray-200 duration-500 hover:scale-[1.02] active:scale-95 "
+      >
+        Send
+      </button>
     </div>
   );
 };
