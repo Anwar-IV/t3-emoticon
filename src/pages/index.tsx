@@ -7,6 +7,7 @@ import { api, RouterOutputs } from "~/utils/api";
 
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import { LoadingPage } from "~/components/loading";
 
 dayjs.extend(relativeTime);
 
@@ -64,9 +65,25 @@ const PostView = (fullPost: PostWithUser) => {
               </>
             )}
           </p>
-          <h1 className="">{post.content}</h1>
+          <h1 className="text-2xl">{post.content}</h1>
         </div>
       </div>
+    </div>
+  );
+};
+
+const Feed = () => {
+  const { data, isLoading: postsLoading } = api.posts.getAll.useQuery();
+  if (!postsLoading && !data) return <p>Something went wrong!</p>;
+  return (
+    <div>
+      {!postsLoading ? (
+        data.map((fullPost) => (
+          <PostView key={fullPost.post.id} {...fullPost} />
+        ))
+      ) : (
+        <LoadingPage />
+      )}
     </div>
   );
 };
@@ -76,11 +93,12 @@ const Home: NextPage = () => {
    *     Until Clerk loads and initializes, `isLoaded` will be set to `false`.
    *     Once Clerk loads, `isLoaded` will be set to `true`, and you can
    *     safely access `isSignedIn` state and `user`. */
-  const { isLoaded, isSignedIn, user } = useUser();
-  user && console.log(user);
-  const { data, isLoading } = api.posts.getAll.useQuery();
-  if (isLoading) return <p>Loading...</p>;
-  if (!data) return <p>Something went wrong!</p>;
+  const { isLoaded: userLoaded, isSignedIn } = useUser();
+
+  // Run the query early so that we can use the cached results
+  api.posts.getAll.useQuery();
+  // Return empty div if BOTH user isn't loaded
+  if (!userLoaded) return <div />;
 
   return (
     <>
@@ -92,7 +110,7 @@ const Home: NextPage = () => {
       <main className="flex h-screen justify-center">
         <div className="h-full w-full border-x border-slate-400 md:max-w-2xl ">
           <div className="border-b border-slate-400 p-4">
-            {!user ? (
+            {!isSignedIn ? (
               <div className="flex justify-center">
                 <SignInButton />
               </div>
@@ -100,11 +118,7 @@ const Home: NextPage = () => {
               <CreatePostWizard />
             )}
           </div>
-          <div>
-            {data.map((fullPost) => (
-              <PostView key={fullPost.post.id} {...fullPost} />
-            ))}
-          </div>
+          <Feed />
         </div>
       </main>
     </>
