@@ -22,13 +22,14 @@ const CreatePostWizard = () => {
   const ctx = api.useContext();
   const { mutate, isLoading: isPosting } = api.posts.create.useMutation({
     onSuccess: (data) => {
-      toast.success("Emoji sent successfully", { id: toastErrorId });
+      toast.success("Emoji posted successfully", { id: toastErrorId });
       ctx.posts.getAll.invalidate();
       setInput("");
     },
     onError: (error) => {
+      setInput("");
       const errorArray = error.data?.zodError?.fieldErrors.content;
-      errorArray &&
+      if (errorArray) {
         errorArray.forEach((error, index) => {
           if (errorArray.length - 1 === index)
             return toast.error(error, {
@@ -36,6 +37,9 @@ const CreatePostWizard = () => {
             });
           return toast.error(error);
         });
+      }
+      errorArray ??
+        toast.error(error.message ?? error.data?.code, { id: toastErrorId });
     },
   });
 
@@ -59,12 +63,14 @@ const CreatePostWizard = () => {
         type="button"
         disabled={isPosting}
         onClick={() => {
-          toastErrorId = toast.loading("Sending Post...", { id: toastErrorId });
+          toastErrorId = toast.loading("Uploading Post...", {
+            id: toastErrorId,
+          });
           mutate({ content: input });
         }}
         className="transition-scale rounded-lg border border-violet-800 bg-transparent p-2 text-gray-200 duration-500 hover:scale-[1.02] active:scale-95 "
       >
-        Send
+        Post
       </button>
     </div>
   );

@@ -60,10 +60,27 @@ export const postsRouter = createTRPCRouter({
   }),
 
   create: privateProcedure
-    .input(z.object({ content: z.string().emoji().min(1).max(255) }))
+    .input(
+      z.object({
+        content: z
+          .string({
+            errorMap: () => {
+              return { message: "Input field cannot be empty" };
+            },
+          })
+          .emoji("You can only post emojis here")
+          .min(1)
+          .max(255),
+      })
+    )
     .mutation(async ({ ctx, input }) => {
       const { content } = input;
-      console.log("CONTENT", content);
+      console.log("CONTENT", /^[0-9]+$/.test(content));
+      if (/^[0-9]+$/.test(content))
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "You cannot post numbers only emojis",
+        });
       const authorId = ctx.currentUser;
       const post = await ctx.prisma.post.create({
         data: {
