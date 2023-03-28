@@ -21,9 +21,11 @@ const CreatePostWizard = () => {
   const { user } = useUser();
   const [input, setInput] = useState<string>("");
   if (!user) return null;
-  const { mutate } = api.posts.create.useMutation({
+  const ctx = api.useContext();
+  const { mutate, isLoading: isPosting } = api.posts.create.useMutation({
     onSuccess: (data) => {
       toast.success("Emoji sent successfully", { id: toastErrorId });
+      ctx.posts.getAll.invalidate();
       setInput("");
     },
     onError: (error) => {
@@ -57,6 +59,7 @@ const CreatePostWizard = () => {
       />
       <button
         type="button"
+        disabled={isPosting}
         onClick={() => {
           toastErrorId = toast.loading("Sending Post...", { id: toastErrorId });
           mutate({ content: input });
