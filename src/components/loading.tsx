@@ -24,14 +24,22 @@ export default function LoadingSpinner({ size }: { size?: number }) {
   );
 }
 
-export const LoadingPage = ({ height }: { height?: string }) => {
+export const LoadingPage = ({
+  size,
+  height,
+  width,
+}: {
+  size?: number;
+  height?: string;
+  width?: string;
+}) => {
   return (
     <div
-      className={`flex ${
-        height ?? "h-screen"
-      } absolute top-0 right-0 w-screen items-center justify-center`}
+      className={`absolute top-0 right-0 flex  items-center ${
+        height && height
+      } ${width && width} justify-center`}
     >
-      <LoadingSpinner size={48} />
+      <LoadingSpinner size={size ?? 48} />
     </div>
   );
 };
