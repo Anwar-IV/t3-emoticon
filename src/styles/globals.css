@@ -5,3 +5,12 @@
 body {
   @apply bg-[#15162c] text-slate-100;
 }
+#trigger:focus {
+  outline: 2px solid rgb(25, 79, 206);
+}
+
+#item:focus {
+  outline: none;
+  box-shadow: -5px 0px 0px 0px rgb(0, 145, 255);
+  border-radius: 5px;
+}
