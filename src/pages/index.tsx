@@ -3,7 +3,7 @@ import { type NextPage } from "next";
 import Head from "next/head";
 import Image from "next/image";
 
-import { api, RouterOutputs } from "~/utils/api";
+import { api, type RouterOutputs } from "~/utils/api";
 
 import toast from "react-hot-toast";
 
@@ -52,9 +52,9 @@ const CreatePostWizard = () => {
   if (!user) return null;
   const ctx = api.useContext();
   const { mutate, isLoading: isPosting } = api.posts.create.useMutation({
-    onSuccess: (data) => {
+    onSuccess: () => {
       toast.success("Emoji posted successfully", { id: toastErrorId });
-      ctx.posts.getAll.invalidate();
+      void ctx.posts.getAll.invalidate();
       setInput("");
     },
     onError: (error) => {
@@ -118,7 +118,7 @@ const PostView = (fullPost: PostWithUser) => {
           height={56}
           className="rounded-full"
           alt={"profile image"}
-          src={author.profileImageUrl!}
+          src={author.profileImageUrl}
         />
         <div className="flex flex-col">
           <p>
