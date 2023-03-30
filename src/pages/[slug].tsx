@@ -9,22 +9,35 @@ const ProfilePage: NextPage<{ id: string }> = ({ id }) => {
   });
 
   if (!data) return <p>404</p>;
-
+  console.log("data -->", data);
+  const fullName = `${data.firstName ?? ""} ${data.lastName ?? ""}`;
+  const displayName = data.username
+    ? `@${data.username}`
+    : `@${data.firstName?.toLowerCase() ?? ""}_${
+        data.lastName?.toLowerCase() ?? ""
+      }`;
   return (
     <>
       <Head>
-        <title>
-          {data.username
-            ? data.username
-            : `${data.firstName ?? ""} ${data.lastName ?? ""}`}
-        </title>
+        <title>{displayName}</title>
       </Head>
       <Layouts>
-        <div>
-          {data.username
-            ? data.username
-            : `${data.firstName ?? ""} ${data.lastName ?? ""}`}
+        <div className="relative h-40  bg-slate-700">
+          <Image
+            src={data.profileImageUrl}
+            alt={`${displayName}'s profile pic`}
+            width={128}
+            height={128}
+            className="absolute bottom-0 left-0 ml-4 -mb-[64px] rounded-full border-4 border-black"
+          />
         </div>
+        <div className="h-[64px]"></div>
+
+        <div className="flex flex-col gap-2 p-4">
+          <p className="text-2xl font-bold">{fullName}</p>
+          <p className="text-2xl text-slate-400">{displayName}</p>
+        </div>
+        <div className="w-full border-b border-slate-400"></div>
       </Layouts>
     </>
   );
@@ -35,6 +48,7 @@ import { prisma } from "~/server/db";
 import { appRouter } from "~/server/api/root";
 import superjson from "superjson";
 import { Layouts } from "~/components/layouts";
+import Image from "next/image";
 
 export const getStaticProps: GetStaticProps = async (context) => {
   const ssg = createProxySSGHelpers({
