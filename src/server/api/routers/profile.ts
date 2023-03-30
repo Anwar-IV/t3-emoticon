@@ -12,13 +12,22 @@ export const profileRouter = createTRPCRouter({
       const { id } = input;
 
       const [user] = await clerkClient.users.getUserList({ userId: [id] });
-      console.log(user);
       if (!user) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "User not found",
         });
       }
-      return filterUserForClient(user);
+      const filteredUser = filterUserForClient(user);
+      if (!filteredUser.firstName || !filteredUser.lastName)
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "No firstName or lastName for User",
+        });
+      return {
+        ...filteredUser,
+        firstName: filteredUser.firstName,
+        lastName: filteredUser.lastName,
+      };
     }),
 });
