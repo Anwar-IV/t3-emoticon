@@ -14,12 +14,16 @@ const ProfilePage: NextPage<{ id: string }> = ({ id }) => {
     <>
       <Head>
         <title>
-          {data.username ? data.username : data.firstName + " " + data.lastName}
+          {data.username
+            ? data.username
+            : `${data.firstName ?? ""} ${data.lastName ?? ""}`}
         </title>
       </Head>
       <Layouts>
         <div>
-          {data.username ? data.username : data.firstName + " " + data.lastName}
+          {data.username
+            ? data.username
+            : `${data.firstName ?? ""} ${data.lastName ?? ""}`}
         </div>
       </Layouts>
     </>

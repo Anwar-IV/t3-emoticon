@@ -36,8 +36,8 @@ export const LoadingPage = ({
   return (
     <div
       className={`absolute top-0 right-0 flex  items-center ${
-        height && height
-      } ${width && width} justify-center`}
+        height ? height : ""
+      } ${width ? width : ""} justify-center`}
     >
       <LoadingSpinner size={size ?? 48} />
     </div>

@@ -57,7 +57,7 @@ const Dropdown = ({ userId }: { userId: string }) => {
                     <p>Profile</p>
                   </DropdownMenu.Item>
                 </Link>
-                <DropdownMenu.Item id="item" onSelect={() => signOut()}>
+                <DropdownMenu.Item id="item" onSelect={() => void signOut()}>
                   <p>Sign Out</p>
                 </DropdownMenu.Item>
               </motion.div>
