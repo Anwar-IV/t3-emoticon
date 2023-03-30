@@ -17,11 +17,11 @@ const ProfilePage: NextPage<{ id: string }> = ({ id }) => {
           {data.username ? data.username : data.firstName + " " + data.lastName}
         </title>
       </Head>
-      <main className="flex h-full justify-center">
+      <Layouts>
         <div>
           {data.username ? data.username : data.firstName + " " + data.lastName}
         </div>
-      </main>
+      </Layouts>
     </>
   );
 };
@@ -30,6 +30,7 @@ import { createProxySSGHelpers } from "@trpc/react-query/ssg";
 import { prisma } from "~/server/db";
 import { appRouter } from "~/server/api/root";
 import superjson from "superjson";
+import { Layouts } from "~/components/layouts";
 
 export const getStaticProps: GetStaticProps = async (context) => {
   const ssg = createProxySSGHelpers({

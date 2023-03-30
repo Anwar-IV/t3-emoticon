@@ -6,7 +6,7 @@ import Image from "next/image";
 import { api, type RouterOutputs } from "~/utils/api";
 
 import toast from "react-hot-toast";
-import { AnimatePresence, motion, useAnimationControls } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useClerk } from "@clerk/nextjs";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 
@@ -165,7 +165,7 @@ const PostView = (fullPost: PostWithUser) => {
             {author.username ? (
               <>
                 <Link href={`/${author.id}`}>
-                  <span className="font-semibold text-gray-400">{`@${author.username}`}</span>
+                  <span className="font-semibold text-gray-200">{`@${author.username}`}</span>
                 </Link>
                 <Link href={`/post/${post.id}`}>
                   <span className="text-sm font-semibold text-gray-400">{` · ${dayjs(
@@ -176,7 +176,7 @@ const PostView = (fullPost: PostWithUser) => {
             ) : (
               <>
                 <Link href={`/${author.id}`}>
-                  <span className="font-semibold text-gray-400">{`@${author.firstName.toLowerCase()}_${author.lastName.toLowerCase()}`}</span>
+                  <span className="font-semibold text-gray-200">{`@${author.firstName.toLowerCase()}_${author.lastName.toLowerCase()}`}</span>
                 </Link>
                 <Link href={`/post/${post.id}`}>
                   <span className="text-sm font-semibold text-gray-400">{` · ${dayjs(
