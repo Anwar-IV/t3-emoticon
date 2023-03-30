@@ -1,30 +1,54 @@
-import { useUser } from "@clerk/nextjs";
-import { type NextPage } from "next";
+import type { GetStaticProps, NextPage } from "next";
 import Head from "next/head";
+import { Layouts } from "~/components/layouts";
+import { PostView } from "~/components/postview";
 
 import { api } from "~/utils/api";
 
-const SinglePostPage: NextPage = () => {
-  /*
-   *     Until Clerk loads and initializes, `isLoaded` will be set to `false`.
-   *     Once Clerk loads, `isLoaded` will be set to `true`, and you can
-   *     safely access `isSignedIn` state and `user`. */
-  const { isLoaded: userLoaded } = useUser();
+const SinglePostPage: NextPage<{ id: string }> = ({ id }) => {
+  const { data } = api.posts.getById.useQuery({
+    id,
+  });
+  if (!data) return <p>404</p>;
+  const { author, post } = data;
 
-  // Run the query early so that we can use the cached results
-  api.posts.getAll.useQuery();
-  // Return empty div if BOTH user isn't loaded
-  if (!userLoaded) return <div />;
-
+  const displayName = author.username
+    ? `@${author.username}`
+    : `@${author.firstName?.toLowerCase() ?? ""}_${
+        author.lastName?.toLowerCase() ?? ""
+      }`;
   return (
     <>
       <Head>
-        <title>Post</title>
+        <title>{`${post.content} - ${displayName}`}</title>
       </Head>
-      <main className="flex h-full justify-center">
-        <div>Profile View</div>
-      </main>
+      <Layouts>
+        <PostView {...data} />
+      </Layouts>
     </>
   );
 };
+
+import { generateSSGHelper } from "~/server/helpers/ssgHelper";
+
+export const getStaticProps: GetStaticProps = async (context) => {
+  const ssg = generateSSGHelper();
+  const id = context.params?.id;
+
+  if (typeof id !== "string") throw new Error("No id");
+
+  await ssg.posts.getById.prefetch({ id });
+
+  return {
+    props: {
+      trpcState: ssg.dehydrate(),
+      id,
+    },
+  };
+};
+
+export const getStaticPaths = () => {
+  return { paths: [], fallback: "blocking" };
+};
+
 export default SinglePostPage;
