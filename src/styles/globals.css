@@ -4,11 +4,14 @@
 
 body {
   @apply bg-[#15162c] text-slate-100;
+  overscroll-behavior: none;
 }
 #trigger:focus {
   outline: 2px solid rgb(25, 79, 206);
 }
-
+#item {
+  @apply cursor-pointer px-2  hover:outline-none;
+}
 #item:focus {
   outline: none;
   box-shadow: -5px 0px 0px 0px rgb(0, 145, 255);

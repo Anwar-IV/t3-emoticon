@@ -1,4 +1,4 @@
-import { SignInButton, SignOutButton, useUser } from "@clerk/nextjs";
+import { SignInButton, useUser } from "@clerk/nextjs";
 import { type NextPage } from "next";
 import Head from "next/head";
 import Image from "next/image";
@@ -6,7 +6,8 @@ import Image from "next/image";
 import { api, type RouterOutputs } from "~/utils/api";
 
 import toast from "react-hot-toast";
-
+import { AnimatePresence, motion, useAnimationControls } from "framer-motion";
+import { useClerk } from "@clerk/nextjs";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 
 import { RxHamburgerMenu } from "react-icons/rx";
@@ -15,14 +16,17 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import { LoadingPage } from "~/components/loading";
 import { useState } from "react";
 import Link from "next/link";
+import { Layouts } from "~/components/layouts";
 let toastErrorId: string;
 
 dayjs.extend(relativeTime);
 
-const Dropdown = () => {
+const Dropdown = ({ userId }: { userId: string }) => {
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const { signOut } = useClerk();
   return (
     <div className="absolute top-10 right-0 md:right-10">
-      <DropdownMenu.Root>
+      <DropdownMenu.Root open={dropdownOpen} onOpenChange={setDropdownOpen}>
         <DropdownMenu.Trigger id="trigger" className="rounded-full ">
           <RxHamburgerMenu
             size={50}
@@ -30,18 +34,36 @@ const Dropdown = () => {
           />
         </DropdownMenu.Trigger>
 
-        <DropdownMenu.Content
-          sideOffset={5}
-          className="rounded-md bg-gradient-to-tr from-violet-700 to-blue-700 p-4"
-        >
-          <DropdownMenu.Arrow className=" fill-blue-700" />
-          <DropdownMenu.Item
-            id="item"
-            className="cursor-pointer px-2  hover:outline-none   "
-          >
-            <SignOutButton />
-          </DropdownMenu.Item>
-        </DropdownMenu.Content>
+        <AnimatePresence>
+          {dropdownOpen && (
+            <DropdownMenu.Content
+              sideOffset={5}
+              className="rounded-md bg-gradient-to-tr from-violet-700 to-blue-700 p-4"
+              asChild
+              forceMount
+            >
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{
+                  opacity: { ease: "easeInOut" },
+                  duration: 0.1,
+                }}
+              >
+                <DropdownMenu.Arrow className=" fill-blue-700" />
+                <Link href={`/${userId}`}>
+                  <DropdownMenu.Item id="item">
+                    <p>Profile</p>
+                  </DropdownMenu.Item>
+                </Link>
+                <DropdownMenu.Item id="item" onSelect={() => signOut()}>
+                  <p>Sign Out</p>
+                </DropdownMenu.Item>
+              </motion.div>
+            </DropdownMenu.Content>
+          )}
+        </AnimatePresence>
       </DropdownMenu.Root>
     </div>
   );
@@ -142,7 +164,7 @@ const PostView = (fullPost: PostWithUser) => {
           <p>
             {author.username ? (
               <>
-                <Link href={`/@${author.username}`}>
+                <Link href={`/${author.id}`}>
                   <span className="font-semibold text-gray-400">{`@${author.username}`}</span>
                 </Link>
                 <Link href={`/post/${post.id}`}>
@@ -192,13 +214,13 @@ const Home: NextPage = () => {
    *     Until Clerk loads and initializes, `isLoaded` will be set to `false`.
    *     Once Clerk loads, `isLoaded` will be set to `true`, and you can
    *     safely access `isSignedIn` state and `user`. */
-  const { isLoaded: userLoaded, isSignedIn } = useUser();
+  const { isLoaded: userLoaded, isSignedIn, user } = useUser();
 
   // Run the query early so that we can use the cached results
   api.posts.getAll.useQuery();
   // Return empty div if BOTH user isn't loaded
   if (!userLoaded) return <div />;
-
+  console.log("user --->", user);
   return (
     <>
       <Head>
@@ -207,21 +229,19 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      {isSignedIn && <Dropdown />}
-      <main className="flex h-full justify-center">
-        <div className="h-full w-full border-x border-slate-400 md:max-w-2xl ">
-          <div className="border-b border-slate-400 p-4">
-            {!isSignedIn ? (
-              <div className="flex justify-center">
-                <SignInButton />
-              </div>
-            ) : (
-              <CreatePostWizard />
-            )}
-          </div>
-          <Feed />
+      {isSignedIn && <Dropdown userId={user.id} />}
+      <Layouts>
+        <div className="border-b border-slate-400 p-4">
+          {!isSignedIn ? (
+            <div className="flex justify-center">
+              <SignInButton />
+            </div>
+          ) : (
+            <CreatePostWizard />
+          )}
         </div>
-      </main>
+        <Feed />
+      </Layouts>
     </>
   );
 };

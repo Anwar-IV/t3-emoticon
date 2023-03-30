@@ -1,18 +1,9 @@
-import clerkClient, { type User } from "@clerk/clerk-sdk-node";
+import clerkClient from "@clerk/clerk-sdk-node";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import { filterUserForClient } from "~/server/helpers/filterUserForClient";
 
 import { createTRPCRouter, privateProcedure, publicProcedure } from "../trpc";
-
-const filterUserForClient = (user: User) => {
-  return {
-    id: user.id,
-    username: user.username,
-    firstName: user.firstName,
-    lastName: user.lastName,
-    profileImageUrl: user.profileImageUrl,
-  };
-};
 
 export const postsRouter = createTRPCRouter({
   getAll: publicProcedure.query(async ({ ctx }) => {
